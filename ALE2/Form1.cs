@@ -15,7 +15,7 @@ namespace ALE2
 {
     public partial class Form1 : Form
     {
-        Parser parser;
+        Parser parser = new Parser();
         string fileName;
         public Form1()
         {
@@ -28,7 +28,10 @@ namespace ALE2
             ofd.ShowDialog();
             fileName = ofd.FileName;
             file_name.Text = Path.GetFileName(fileName);
-            read_file.Enabled = true;
+            if (file_name.Text != "")
+            {
+                read_file.Enabled = true;
+            }
         }
 
         private void show_graph_Click(object sender, EventArgs e)
@@ -56,7 +59,7 @@ namespace ALE2
         {
             try
             {
-                parser = new Parser(fileName);
+                parser.ParsingFile(fileName);
                 if (parser.IsDFA)
                 {
                     dfa_value.Text = "YES";
@@ -78,6 +81,22 @@ namespace ALE2
         {
             dfa_value.Text = "dfa_value";
             file_name.Text = "";
+            read_file.Enabled = false;
+            show_graph.Enabled = false;
+        }
+
+        private void parse_notation_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                parser.ParsingPrefix(prefix_notation.Text);
+                Regular_Expression regular_Expression = parser.GetExpression();
+                tbRE.Text = regular_Expression.ToString();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 }

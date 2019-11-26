@@ -10,10 +10,10 @@ namespace ALE2
     {
         private State left_State;
         private State right_State;
-        string alphabet_symbol;
-        public Transition(string symbol)
+        string labeled_transition;
+        public Transition(string labeled_Transition)
         {
-            alphabet_symbol = symbol;
+            labeled_transition = labeled_Transition;
         }
 
         public void SetLeftState(State state)
@@ -25,9 +25,24 @@ namespace ALE2
             right_State = state;
         }
 
+        public State GetLeftState()
+        {
+            return left_State;
+        }
+
+        public State GetRightState()
+        {
+            return right_State;
+        }
+
         public string CreateGraph()
         {
-            return $"\""+left_State.State_Name+"\" -> \""+right_State.State_Name+$"\"[label = \"{alphabet_symbol}\"]";
+            return $"\""+left_State.State_Name+"\" -> \""+right_State.State_Name+$"\"[label = \"{labeled_transition}\"]";
+        }
+
+        public string GetLabeledTransition()
+        {
+            return labeled_transition;
         }
     }
 }

@@ -14,12 +14,13 @@ namespace ALE2
         List<Alphabet> alphabets;
         List<Transition> listTransitions;
         public bool IsDFA;
-        public Parser(string file_Name)
+        List<string> listNotation;
+        public Parser()
         {
-            ParsingFile(file_Name);
+
         }
 
-        private void ParsingFile(string fileName)
+        public void ParsingFile(string fileName)
         {
             states = new List<State>();
             alphabets = new List<Alphabet>();
@@ -30,86 +31,109 @@ namespace ALE2
             {
                 fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
                 sr = new StreamReader(fs);
-                string s = sr.ReadLine();
-                while (s != null)
+                string line = sr.ReadLine();
+                while (line != null)
                 {
-                    string first_word = Regex.Replace(s.Split()[0], @"[^0-9a-zA-Z\ ]+", "");
-                    if (first_word == "alphabet")
+                    string s = line.Replace(" ", "");
+                    if (s != "" && s[0] != '#')
                     {
-                        string the_rest = s.Substring(s.LastIndexOf(':') + 2);
-                        foreach (char character in the_rest)
+                        string first_word = s.Substring(0, s.IndexOf(':'));
+                        if (first_word == "alphabet")
                         {
-                            Alphabet alphabet = CheckExistAlphabet(character.ToString(), alphabets);
-                            if (alphabet == null)
+                            string the_rest = s.Substring(s.IndexOf(':') + 1);
+                            foreach (char character in the_rest)
                             {
-                                alphabet = new Alphabet(character.ToString());
-                                alphabets.Add(alphabet);
-                            }
-                        }
-                    }
-                    if (first_word == "states")
-                    {
-                        string the_rest = s.Substring(s.LastIndexOf(':') + 2);
-                        string[] state_names = the_rest.Split(',');
-                        foreach (string name in state_names)
-                        {
-                            State state = CheckExistState(name, states);
-                            if (state == null)
-                            {
-                                state = new State(name);
-                                states.Add(state);
-                            }
-                        }
-                    }
-                    if (first_word == "final")
-                    {
-                        string the_rest = s.Substring(s.LastIndexOf(':') + 2);
-                        string[] state_names = the_rest.Split(',');
-                        foreach (string name in state_names)
-                        {
-                            foreach (State state in states)
-                            {
-                                if (state.State_Name == name)
+                                Alphabet alphabet = CheckExistAlphabet(character.ToString(), alphabets);
+                                if (alphabet == null)
                                 {
-                                    state.IsFinal = true;
+                                    alphabet = new Alphabet(character.ToString());
+                                    alphabets.Add(alphabet);
                                 }
                             }
                         }
-                    }
-                    if (first_word == "transitions")
-                    {
-                        s = sr.ReadLine();
-                        while (s != "end.")
+                        if (first_word == "states")
                         {
-                            string state_and_symbol = s.Substring(0, s.IndexOf('-') - 1);
-                            string left_state = state_and_symbol.Substring(0, state_and_symbol.IndexOf(','));
-                            string symbol = state_and_symbol.Substring(state_and_symbol.IndexOf(',') + 1);
-                            string right_state = s.Substring(s.IndexOf('>') + 2);
-                            Transition transition = new Transition(symbol);
-                            State Left = CheckExistState(left_state, states);
-                            State Right = CheckExistState(right_state, states);
-                            if (Left!= null && Right !=null)
+                            string the_rest = s.Substring(s.LastIndexOf(':') + 1);
+                            string[] state_names = the_rest.Split(',');
+                            foreach (string name in state_names)
                             {
-                                transition.SetLeftState(Left);
-                                transition.SetRightState(Right);
+                                State state = CheckExistState(name, states);
+                                if (state == null)
+                                {
+                                    state = new State(name);
+                                    states.Add(state);
+                                }
                             }
-                            listTransitions.Add(transition);
-                            s = sr.ReadLine();
+                        }
+                        if (first_word == "final")
+                        {
+                            string the_rest = s.Substring(s.LastIndexOf(':') + 1);
+                            string[] state_names = the_rest.Split(',');
+                            foreach (string name in state_names)
+                            {
+                                foreach (State state in states)
+                                {
+                                    if (state.State_Name == name)
+                                    {
+                                        state.IsFinal = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (first_word == "transitions")
+                        {
+                            line = sr.ReadLine();
+                            while (line != "end.")
+                            {
+                                s = line.Replace(" ", "");
+                                string state_and_symbol = s.Substring(0, s.IndexOf('-'));
+                                string left_state = state_and_symbol.Substring(0, state_and_symbol.IndexOf(','));
+                                string symbol = state_and_symbol.Substring(state_and_symbol.IndexOf(',') + 1);
+                                string right_state = s.Substring(s.IndexOf('>') + 1);
+                                Transition transition = new Transition(symbol);
+                                State Left = CheckExistState(left_state, states);
+                                State Right = CheckExistState(right_state, states);
+                                if (Left!= null && Right !=null)
+                                {
+                                    transition.SetLeftState(Left);
+                                    transition.SetRightState(Right);
+                                }
+                                listTransitions.Add(transition);
+                                line = sr.ReadLine();
+                            }
+                        }
+                        if (first_word == "dfa")
+                        {
+                            string the_rest = s.Substring(s.LastIndexOf(':') + 1);
+                            if (the_rest == "n")
+                            {
+                                IsDFA = false;
+                            }
+                            if (the_rest == "y")
+                            {
+                                IsDFA = true;
+                            }
+                            IsDFA = isDFA();
+                        }
+                        if (first_word == "finite")
+                        {
+
+                        }
+                        if (first_word == "stack")
+                        {
+
+                        }
+                        if (first_word == "words")
+                        {
+                            line = sr.ReadLine();
+                            while (line != "end.")
+                            {
+                                s = line.Replace(" ", "");
+                                line = sr.ReadLine();
+                            }
                         }
                     }
-                    if (first_word == "dfa")
-                    {
-                        string the_rest = s.Substring(s.LastIndexOf(':') + 2);
-                        if (the_rest == "n")
-                        {
-                            IsDFA = false;
-                        }
-                        if (the_rest == "y")
-                        {
-                            IsDFA = true;
-                        }
-                    }
-                    s = sr.ReadLine();
+                    line = sr.ReadLine();
                 }
             }
             catch (IOException)
@@ -128,6 +152,65 @@ namespace ALE2
                 }
 
             }
+        }
+
+        public void ParsingPrefix(string prefix_notation)
+        {
+            listNotation = new List<string>();
+            string token = "";
+            bool Read = true;
+            for (int i = 0; i < prefix_notation.Length; i++)
+            {
+                if (prefix_notation[i] == '(' || prefix_notation[i] == ')' || prefix_notation[i] == ',')
+                {
+                    Read = false;
+                }
+                if (prefix_notation[i] != '(' && prefix_notation[i] != ')' && prefix_notation[i] != ',')
+                {
+                    token += prefix_notation[i];
+                }
+                if (!Read && token!="")
+                {
+                    listNotation.Add(token);
+                    Read = true;
+                    token = "";
+                }
+            }
+        }
+
+        public Regular_Expression GetExpression()
+        {
+            Regular_Expression expression = null;
+            string token = listNotation.First();
+            switch (token)
+            {
+                case "|":
+                    expression = new Choice();
+                    listNotation.Remove(token);
+                    expression.Left_Expression = GetExpression();
+                    expression.Right_Expression = GetExpression();
+                    break;
+                case ".":
+                    expression = new Concatenation();
+                    listNotation.Remove(token);
+                    expression.Left_Expression = GetExpression();
+                    expression.Right_Expression = GetExpression();
+                    break;
+                case "_":
+                    expression = new Epsilon();
+                    listNotation.Remove(token);
+                    break;
+                case "*":
+                    expression = new Repetition();
+                    listNotation.Remove(token);
+                    expression.Left_Expression = GetExpression();
+                    break;
+                default:
+                    expression = new Alphabet(token);
+                    listNotation.Remove(token);
+                    break;
+            }
+            return expression;
         }
         private Alphabet CheckExistAlphabet(string character, List<Alphabet> alphabets)
         {
@@ -174,6 +257,29 @@ namespace ALE2
             }
             data += Environment.NewLine + "}";
             return data;
+        }
+
+        private bool isDFA()
+        {
+            if (listTransitions.Exists(x => x.GetLabeledTransition().Contains("_")))
+            {
+                return false;
+            }
+            foreach (Alphabet alp in alphabets)
+            {
+                List<Transition> list_transitions_contain_alp = listTransitions.FindAll(x => x.GetLabeledTransition().Contains(alp.Character));
+                List<State> list_states = new List<State>();
+                foreach (Transition trans in list_transitions_contain_alp)
+                {
+                    list_states.Add(trans.GetLeftState());
+                }
+                bool are_2lists_equal = (list_states.All(states.Contains) && list_states.Count == states.Count);
+                if (!are_2lists_equal)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
