@@ -10,21 +10,22 @@ namespace ALE2
 {
     class Parser
     {
-        List<State> states;
-        List<Alphabet> alphabets;
+        List<State> listStates;
+        List<Alphabet> listAlphabets;
         List<Transition> listTransitions;
+        List<Word> listWords;
         public bool IsDFA;
         List<string> listNotation;
-        public Parser()
-        {
-
-        }
+        string comment;
+        public Automaton Automaton;
+        public Parser(){}
 
         public void ParsingFile(string fileName)
         {
-            states = new List<State>();
-            alphabets = new List<Alphabet>();
+            listStates = new List<State>();
+            listAlphabets = new List<Alphabet>();
             listTransitions = new List<Transition>();
+            listWords = new List<Word>();
             FileStream fs = null;
             StreamReader sr = null;
             try
@@ -32,6 +33,7 @@ namespace ALE2
                 fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
                 sr = new StreamReader(fs);
                 string line = sr.ReadLine();
+                int count_line = 1;
                 while (line != null)
                 {
                     string s = line.Replace(" ", "");
@@ -41,37 +43,50 @@ namespace ALE2
                         if (first_word == "alphabet")
                         {
                             string the_rest = s.Substring(s.IndexOf(':') + 1);
+                            if (the_rest == "")
+                            {
+                                throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                            }
                             foreach (char character in the_rest)
                             {
-                                Alphabet alphabet = CheckExistAlphabet(character.ToString(), alphabets);
+                                Alphabet alphabet = CheckExistAlphabet(character.ToString(), listAlphabets);
                                 if (alphabet == null)
                                 {
                                     alphabet = new Alphabet(character.ToString());
-                                    alphabets.Add(alphabet);
+                                    listAlphabets.Add(alphabet);
                                 }
                             }
                         }
                         if (first_word == "states")
                         {
                             string the_rest = s.Substring(s.LastIndexOf(':') + 1);
+                            if (the_rest == "")
+                            {
+                                throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                            }
                             string[] state_names = the_rest.Split(',');
                             foreach (string name in state_names)
                             {
-                                State state = CheckExistState(name, states);
+                                State state = CheckExistState(name, listStates);
                                 if (state == null)
                                 {
                                     state = new State(name);
-                                    states.Add(state);
+                                    listStates.Add(state);
                                 }
                             }
+                            listStates[0].IsInitial = true;
                         }
                         if (first_word == "final")
                         {
                             string the_rest = s.Substring(s.LastIndexOf(':') + 1);
+                            if (the_rest == "")
+                            {
+                                throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                            }
                             string[] state_names = the_rest.Split(',');
                             foreach (string name in state_names)
                             {
-                                foreach (State state in states)
+                                foreach (State state in listStates)
                                 {
                                     if (state.State_Name == name)
                                     {
@@ -83,6 +98,7 @@ namespace ALE2
                         if (first_word == "transitions")
                         {
                             line = sr.ReadLine();
+                            count_line++;
                             while (line != "end.")
                             {
                                 s = line.Replace(" ", "");
@@ -90,9 +106,13 @@ namespace ALE2
                                 string left_state = state_and_symbol.Substring(0, state_and_symbol.IndexOf(','));
                                 string symbol = state_and_symbol.Substring(state_and_symbol.IndexOf(',') + 1);
                                 string right_state = s.Substring(s.IndexOf('>') + 1);
+                                if (left_state == ""|| symbol == ""|| right_state == "")
+                                {
+                                    throw new InvalidValueInFileException($"Invalid transition at line {count_line}");
+                                }
                                 Transition transition = new Transition(symbol);
-                                State Left = CheckExistState(left_state, states);
-                                State Right = CheckExistState(right_state, states);
+                                State Left = CheckExistState(left_state, listStates);
+                                State Right = CheckExistState(right_state, listStates);
                                 if (Left!= null && Right !=null)
                                 {
                                     transition.SetLeftState(Left);
@@ -100,6 +120,7 @@ namespace ALE2
                                 }
                                 listTransitions.Add(transition);
                                 line = sr.ReadLine();
+                                count_line++;
                             }
                         }
                         if (first_word == "dfa")
@@ -109,11 +130,14 @@ namespace ALE2
                             {
                                 IsDFA = false;
                             }
-                            if (the_rest == "y")
+                            else if (the_rest == "y")
                             {
                                 IsDFA = true;
                             }
-                            IsDFA = isDFA();
+                            else
+                            {
+                                throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                            }
                         }
                         if (first_word == "finite")
                         {
@@ -126,15 +150,47 @@ namespace ALE2
                         if (first_word == "words")
                         {
                             line = sr.ReadLine();
+                            count_line++;
                             while (line != "end.")
                             {
                                 s = line.Replace(" ", "");
+                                string[] data = s.Split(',');
+                                string words = data[0];
+                                string indication = data[1];
+                                if (DoesWordContainIncorrectCharacter(words,listAlphabets))
+                                {
+                                    throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                                }
+                                Word word = new Word(words);
+                                if (indication == "y")
+                                {
+                                    word.IsAccepted = true;
+                                }
+                                else if (indication == "n")
+                                {
+                                    word.IsAccepted = false;
+                                }
+                                else
+                                {
+                                    throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                                }
+                                word.IsAccepted = word.IsWordAccepted(listStates, listTransitions);
+                                listWords.Add(word);
                                 line = sr.ReadLine();
+                                count_line++;
                             }
                         }
                     }
+                    else if (s != "" && s[0] == '#')
+                    {
+                        comment = s.Substring(1);
+                    }
                     line = sr.ReadLine();
+                    count_line++;
                 }
+                Automaton = new Automaton(listAlphabets, listStates, listTransitions, listWords);
+                Automaton.Comment = comment;
+                IsDFA = Automaton.IsDFA;
             }
             catch (IOException)
             {
@@ -156,6 +212,7 @@ namespace ALE2
 
         public void ParsingPrefix(string prefix_notation)
         {
+            prefix_notation = prefix_notation.Replace(" ", "");
             listNotation = new List<string>();
             string token = "";
             bool Read = true;
@@ -212,6 +269,7 @@ namespace ALE2
             }
             return expression;
         }
+
         private Alphabet CheckExistAlphabet(string character, List<Alphabet> alphabets)
         {
             if (alphabets.Any())
@@ -242,42 +300,17 @@ namespace ALE2
             return null;
         }
 
-        public string CreateGraph()
+        private bool DoesWordContainIncorrectCharacter(string words, List<Alphabet> alphabets)
         {
-            string data = "digraph {" + Environment.NewLine + "rankdir = LR;" + Environment.NewLine + "\"\" [shape = none]";
-            foreach (State state in states)
+            string clone_words = words.Clone().ToString();
+            foreach (Alphabet alphabet in alphabets)
             {
-                data += Environment.NewLine + state.CreateGraph();
+                clone_words = clone_words.Replace(alphabet.Character, "");
             }
-            data += Environment.NewLine;
-            data += Environment.NewLine + $"\"\" -> \"" + states[0].State_Name + "\"";
-            foreach (Transition transition in listTransitions)
-            {
-                data += Environment.NewLine + transition.CreateGraph();
-            }
-            data += Environment.NewLine + "}";
-            return data;
-        }
-
-        private bool isDFA()
-        {
-            if (listTransitions.Exists(x => x.GetLabeledTransition().Contains("_")))
+            clone_words = clone_words.Replace("_", "");
+            if (clone_words == "")
             {
                 return false;
-            }
-            foreach (Alphabet alp in alphabets)
-            {
-                List<Transition> list_transitions_contain_alp = listTransitions.FindAll(x => x.GetLabeledTransition().Contains(alp.Character));
-                List<State> list_states = new List<State>();
-                foreach (Transition trans in list_transitions_contain_alp)
-                {
-                    list_states.Add(trans.GetLeftState());
-                }
-                bool are_2lists_equal = (list_states.All(states.Contains) && list_states.Count == states.Count);
-                if (!are_2lists_equal)
-                {
-                    return false;
-                }
             }
             return true;
         }

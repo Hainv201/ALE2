@@ -44,5 +44,10 @@ namespace ALE2
         {
             return labeled_transition;
         }
+
+        public override string ToString()
+        {
+            return $"{left_State},{labeled_transition} --> {right_State}";
+        }
     }
 }

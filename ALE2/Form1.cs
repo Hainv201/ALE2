@@ -24,6 +24,7 @@ namespace ALE2
 
         private void browse_file_Click(object sender, EventArgs e)
         {
+            ClearForm();
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.ShowDialog();
             fileName = ofd.FileName;
@@ -38,7 +39,7 @@ namespace ALE2
         {
             try
             {
-                string str = parser.CreateGraph();
+                string str = parser.Automaton.CreateGraph();
                 File.WriteAllText(@"graph.dot", str);
 
                 Process dot = new Process();
@@ -59,44 +60,86 @@ namespace ALE2
         {
             try
             {
+                result_data.Columns.Clear();
+                result_data.Rows.Clear();
                 parser.ParsingFile(fileName);
                 if (parser.IsDFA)
                 {
-                    dfa_value.Text = "YES";
+                    is_Dfa.Text = "YES";
+                    is_Dfa.BackColor = Color.LimeGreen;
                 }
                 else
                 {
-                    dfa_value.Text = "NO";
+                    is_Dfa.Text = "NO";
+                    is_Dfa.BackColor = Color.Red;
                 }
-
+                result_data.Columns.Add("Word","Word");
+                result_data.Columns.Add("Is Accepted?", "Is Accepted?");
+                foreach (Word word in parser.Automaton.ListWords)
+                {
+                    result_data.Rows.Add(word.Words,word.IsAccepted);
+                }
+                show_graph.Enabled = true;
+                bt_word.Enabled = true;
+                bt_add_comment.Enabled = true;
+                bt_create_text_file.Enabled = true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-            show_graph.Enabled = true;
         }
 
         private void clear_form_Click(object sender, EventArgs e)
         {
-            dfa_value.Text = "dfa_value";
-            file_name.Text = "";
-            read_file.Enabled = false;
-            show_graph.Enabled = false;
+            ClearForm();
         }
 
         private void parse_notation_Click(object sender, EventArgs e)
         {
             try
             {
-                parser.ParsingPrefix(prefix_notation.Text);
-                Regular_Expression regular_Expression = parser.GetExpression();
-                tbRE.Text = regular_Expression.ToString();
+                string prefix = prefix_notation.Text;
+                if (String.IsNullOrWhiteSpace(prefix))
+                {
+                    parser.ParsingPrefix(prefix_notation.Text);
+                    Regular_Expression regular_Expression = parser.GetExpression();
+                    tbRE.Text = regular_Expression.ToString();
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private void ClearForm()
+        {
+            result_data.Columns.Clear();
+            result_data.Rows.Clear();
+            file_name.Text = "";
+            is_Dfa.Text = "";
+            is_Dfa.BackColor = Color.White;
+            read_file.Enabled = false;
+            show_graph.Enabled = false;
+            bt_word.Enabled = false;
+        }
+
+        private void bt_word_Click(object sender, EventArgs e)
+        {
+            Word word = new Word(tB_word.Text);
+            parser.Automaton.ListWords.Add(word);
+            result_data.Rows.Add(word.Words, word.IsWordAccepted(parser.Automaton.ListStates,parser.Automaton.ListTransitions));
+        }
+
+        private void bt_add_comment_Click(object sender, EventArgs e)
+        {
+            parser.Automaton.Comment = tB_comment.Text;
+        }
+
+        private void bt_create_text_file_Click(object sender, EventArgs e)
+        {
+            parser.Automaton.CreateTextFile();
         }
     }
 }
