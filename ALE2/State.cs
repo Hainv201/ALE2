@@ -24,7 +24,7 @@ namespace ALE2
             {
                 return $"{State_Name}" + " [shape = doublecircle]";
             }
-            return $"{State_Name}" + " [shape=circle]";
+            return $"{State_Name}" + " [shape = circle]";
         }
 
         public override string ToString()

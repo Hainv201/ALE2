@@ -188,7 +188,8 @@ namespace ALE2
                     line = sr.ReadLine();
                     count_line++;
                 }
-                Automaton = new Automaton(listAlphabets, listStates, listTransitions, listWords);
+                Automaton = new Automaton(listAlphabets, listStates, listTransitions);
+                Automaton.ListWords = listWords;
                 Automaton.Comment = comment;
                 IsDFA = Automaton.IsDFA;
             }
@@ -218,7 +219,7 @@ namespace ALE2
             bool Read = true;
             for (int i = 0; i < prefix_notation.Length; i++)
             {
-                if (prefix_notation[i] == '(' || prefix_notation[i] == ')' || prefix_notation[i] == ',')
+                if (prefix_notation[i] == '(' || prefix_notation[i] == ')' || prefix_notation[i] == ',' || i == prefix_notation.Length - 1)
                 {
                     Read = false;
                 }
@@ -300,7 +301,7 @@ namespace ALE2
             return null;
         }
 
-        private bool DoesWordContainIncorrectCharacter(string words, List<Alphabet> alphabets)
+        public bool DoesWordContainIncorrectCharacter(string words, List<Alphabet> alphabets)
         {
             string clone_words = words.Clone().ToString();
             foreach (Alphabet alphabet in alphabets)
@@ -308,6 +309,7 @@ namespace ALE2
                 clone_words = clone_words.Replace(alphabet.Character, "");
             }
             clone_words = clone_words.Replace("_", "");
+            clone_words = clone_words.Replace(" ", "");
             if (clone_words == "")
             {
                 return false;

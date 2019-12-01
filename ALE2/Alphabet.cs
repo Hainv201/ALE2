@@ -18,5 +18,24 @@ namespace ALE2
         {
             return Character;
         }
+
+        public override List<Transition> GetAutomaton(ref int i, ref List<Transition> ListTransitions, ref List<State> ListStates, ref List<Alphabet> ListAlphabets)
+        {
+            List<Transition> transitions_got_by_parse_alphabet = new List<Transition>();
+            State initial = new State($"S{i}");
+            State final = new State($"S{i+1}");
+            i += 2;
+            initial.IsInitial = true;
+            final.IsFinal = true;
+            Transition transition = new Transition($"{Character}");
+            transition.SetLeftState(initial);
+            transition.SetRightState(final);
+            transitions_got_by_parse_alphabet.Add(transition);
+            ListTransitions.Add(transition);
+            ListStates.Add(initial);
+            ListStates.Add(final);
+            ListAlphabets.Add(this);
+            return transitions_got_by_parse_alphabet;
+        }
     }
 }

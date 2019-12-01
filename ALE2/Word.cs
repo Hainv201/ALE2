@@ -40,7 +40,7 @@ namespace ALE2
         private bool IsFinal(int i, List<Transition> transitions, bool UseEpsilonMove, State current_state)
         {
             string alp = "";
-            if (Words == "" || Words == "_" || ContainOnlyEpsilon())
+            if (ContainOnlyEpsilon())
             {
                 alp = "_";
             }
@@ -64,11 +64,11 @@ namespace ALE2
                 }
             }
             List<Transition> next_possible_transitions = PossibleMove(transitions, alp, current_state);
-            if (i == Words.Length - 1 && Words != "" && Words!= "_" && !ContainOnlyEpsilon() && next_possible_transitions.Exists(x => x.GetRightState().IsFinal && x.GetLabeledTransition().Contains(alp)))
+            if (i == Words.Length - 1 && !ContainOnlyEpsilon() && next_possible_transitions.Exists(x => x.GetRightState().IsFinal && x.GetLabeledTransition().Contains(alp)))
             {
                 return true;
             }
-            if ((Words == "" || Words == "_" || ContainOnlyEpsilon()) && next_possible_transitions.Exists(x => x.GetRightState().IsFinal))
+            if (ContainOnlyEpsilon() && next_possible_transitions.Exists(x => x.GetRightState().IsFinal))
             {
                 return true;
             }
@@ -95,6 +95,7 @@ namespace ALE2
         {
             string clone_words = Words.Clone().ToString();
             clone_words = clone_words.Replace("_", "");
+            clone_words = clone_words.Replace(" ", "");
             if (clone_words == "")
             {
                 return true;

@@ -12,15 +12,15 @@ namespace ALE2
         public List<Alphabet> ListAlphabets { get; }
         public List<State> ListStates { get; }
         public List<Transition> ListTransitions { get; }
-        public List<Word> ListWords { get; }
+        public List<Word> ListWords { get; set; }
         public string Comment { get; set; }
         public bool IsDFA { get; }
-        public Automaton(List<Alphabet> alphabets, List<State> states, List<Transition> transitions, List<Word> words)
+        public Automaton(List<Alphabet> alphabets, List<State> states, List<Transition> transitions)
         {
             ListAlphabets = alphabets;
             ListStates = states;
             ListTransitions = transitions;
-            ListWords = words;
+            ListWords = new List<Word>();
             IsDFA = isDFA();
         }
         public string CreateGraph()
@@ -31,7 +31,7 @@ namespace ALE2
                 data += Environment.NewLine + state.CreateGraph();
             }
             data += Environment.NewLine;
-            data += Environment.NewLine + $"\"\" -> \"" + ListStates[0].State_Name + "\"";
+            data += Environment.NewLine + $"\"\" -> \"" + ListStates.Find(x => x.IsInitial).State_Name + "\"";
             foreach (Transition transition in ListTransitions)
             {
                 data += Environment.NewLine + transition.CreateGraph();
@@ -86,7 +86,7 @@ namespace ALE2
             content += $"words:" + Environment.NewLine;
             foreach (Word word in ListWords)
             {
-                if (word.IsWordAccepted(ListStates,ListTransitions))
+                if (word.IsWordAccepted(ListStates, ListTransitions))
                 {
                     content += word.Words + ",y" + Environment.NewLine;
                 }
