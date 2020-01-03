@@ -14,7 +14,6 @@ namespace ALE2
         List<Alphabet> listAlphabets;
         List<Transition> listTransitions;
         List<Word> listWords;
-        public bool IsDFA;
         List<string> listNotation;
         string comment;
         public Automaton Automaton;
@@ -56,6 +55,10 @@ namespace ALE2
                                     listAlphabets.Add(alphabet);
                                 }
                             }
+                        }
+                        if (first_word == "stack")
+                        {
+
                         }
                         if (first_word == "states")
                         {
@@ -126,26 +129,18 @@ namespace ALE2
                         if (first_word == "dfa")
                         {
                             string the_rest = s.Substring(s.LastIndexOf(':') + 1);
-                            if (the_rest == "n")
-                            {
-                                IsDFA = false;
-                            }
-                            else if (the_rest == "y")
-                            {
-                                IsDFA = true;
-                            }
-                            else
+                            if (the_rest != "n" && the_rest != "y")
                             {
                                 throw new InvalidValueInFileException($"Invalid value at line {count_line}");
                             }
                         }
                         if (first_word == "finite")
                         {
-
-                        }
-                        if (first_word == "stack")
-                        {
-
+                            string the_rest = s.Substring(s.LastIndexOf(':') + 1);
+                            if (the_rest != "n" && the_rest != "y")
+                            {
+                                throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                            }
                         }
                         if (first_word == "words")
                         {
@@ -162,19 +157,10 @@ namespace ALE2
                                     throw new InvalidValueInFileException($"Invalid value at line {count_line}");
                                 }
                                 Word word = new Word(words);
-                                if (indication == "y")
-                                {
-                                    word.IsAccepted = true;
-                                }
-                                else if (indication == "n")
-                                {
-                                    word.IsAccepted = false;
-                                }
-                                else
+                                if (indication != "y" && indication != "n")
                                 {
                                     throw new InvalidValueInFileException($"Invalid value at line {count_line}");
                                 }
-                                word.IsAccepted = word.IsWordAccepted(listStates, listTransitions);
                                 listWords.Add(word);
                                 line = sr.ReadLine();
                                 count_line++;
@@ -189,9 +175,8 @@ namespace ALE2
                     count_line++;
                 }
                 Automaton = new Automaton(listAlphabets, listStates, listTransitions);
-                Automaton.ListWords = listWords;
+                Automaton.GetListWords(listWords);
                 Automaton.Comment = comment;
-                IsDFA = Automaton.IsDFA;
             }
             catch (IOException)
             {

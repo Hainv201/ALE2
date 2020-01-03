@@ -9,62 +9,55 @@ namespace ALE2
     class Word
     {
         public string Words { get; }
-        public bool IsAccepted { get; set; }
+        public bool IsAccepted { get; private set; }
         public Word(string _words)
         {
             Words = _words;
         }
 
 
-        public bool IsWordAccepted(List<State> states, List<Transition> transitions)
+        public void IsWordAccepted(List<State> states, List<Transition> transitions)
         {
             State Initial = states.Find(x => x.IsInitial);
             int i = 0;
-            return IsFinal(i, transitions,false, Initial);
+            List<Transition> processedEpsilonTransitions = new List<Transition>();
+            IsAccepted = IsFinal(i, processedEpsilonTransitions, transitions,false, Initial);
         }
 
         private List<Transition> PossibleMove(List<Transition> transitions, string alp, State current_State)
         {
             if (alp != "_")
             {
-                List<Transition> possible_move_by_alp = transitions.FindAll(x => (x.GetLabeledTransition().Contains(alp) && x.GetLeftState() == current_State));
-                List<Transition> possible_move_by_epsilon = transitions.FindAll(x => (x.GetLabeledTransition().Contains("_") && x.GetLeftState() == current_State && x.GetRightState() != current_State));
+                List<Transition> possible_move_by_alp = transitions.FindAll(x => (x.GetLabeledTransition() == alp && x.GetLeftState() == current_State));
+                List<Transition> possible_move_by_epsilon = transitions.FindAll(x => (x.GetLabeledTransition() == "_" && x.GetLeftState() == current_State && x.GetRightState() != current_State));
                 return possible_move_by_alp.Union(possible_move_by_epsilon).ToList();
             }
             else
             {
-                return transitions.FindAll(x => (x.GetLabeledTransition().Contains("_") && x.GetLeftState() == current_State && x.GetRightState() != current_State));
+                return transitions.FindAll(x => (x.GetLabeledTransition() == "_" && x.GetLeftState() == current_State && x.GetRightState() != current_State));
             }
         }
 
-        private bool IsFinal(int i, List<Transition> transitions, bool UseEpsilonMove, State current_state)
+        private bool IsFinal(int i,List<Transition> processedEpsilonTransitions, List<Transition> transitions, bool UseEpsilonMove, State current_state)
         {
-            string alp = "";
+            string alp = "?";
             if (ContainOnlyEpsilon())
             {
                 alp = "_";
             }
             else
             {
-                if (!UseEpsilonMove)
+                if (UseEpsilonMove)
                 {
-                    if (i < Words.Length)
-                    {
-                        alp = Words[i].ToString();
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    i -= 1;
                 }
-                else
+                if (i < Words.Length)
                 {
-                    alp = Words[i - 1].ToString();
-                    i = i - 1;
+                    alp = Words[i].ToString();
                 }
             }
             List<Transition> next_possible_transitions = PossibleMove(transitions, alp, current_state);
-            if (i == Words.Length - 1 && !ContainOnlyEpsilon() && next_possible_transitions.Exists(x => x.GetRightState().IsFinal && x.GetLabeledTransition().Contains(alp)))
+            if (i == Words.Length && !ContainOnlyEpsilon() && current_state.IsFinal)
             {
                 return true;
             }
@@ -72,18 +65,34 @@ namespace ALE2
             {
                 return true;
             }
+            for (int j = 0; j < next_possible_transitions.Count; j++)
+            {
+                Transition t1 = next_possible_transitions[j];
+                foreach (var item in processedEpsilonTransitions)
+                {
+                    if (t1 == item)
+                    {
+                        next_possible_transitions.Remove(t1);
+                    }
+                }
+            }
+            if (next_possible_transitions.Count == 0)
+            {
+                return false;
+            }
             foreach (Transition transition in next_possible_transitions)
             {
-                if (transition.GetLabeledTransition().Contains("_"))
+                if (transition.GetLabeledTransition() == "_")
                 {
                     UseEpsilonMove = true;
+                    processedEpsilonTransitions.Add(transition);
                 }
                 else
                 {
                     UseEpsilonMove = false;
                 }
                 current_state = transition.GetRightState();
-                if (IsFinal(i + 1, transitions, UseEpsilonMove, current_state))
+                if (IsFinal(i + 1, processedEpsilonTransitions, transitions, UseEpsilonMove, current_state))
                 {
                     return true;
                 }

@@ -35,6 +35,7 @@ namespace ALE2
             {
                 read_file.Enabled = true;
                 parse_notation.Enabled = false;
+                prefix_notation.Enabled = false;
             }
         }
 
@@ -66,7 +67,7 @@ namespace ALE2
                 result_data.Columns.Clear();
                 result_data.Rows.Clear();
                 parser.ParsingFile(fileName);
-                if (parser.IsDFA)
+                if (parser.Automaton.IsDFA)
                 {
                     is_Dfa.Text = "YES";
                     is_Dfa.BackColor = Color.LimeGreen;
@@ -75,6 +76,17 @@ namespace ALE2
                 {
                     is_Dfa.Text = "NO";
                     is_Dfa.BackColor = Color.Red;
+                    btConvertToDFA.Enabled = true;
+                }
+                if (parser.Automaton.IsFinite)
+                {
+                    tB_Isfinite.Text = "YES";
+                    tB_Isfinite.BackColor = Color.LimeGreen;
+                }
+                else
+                {
+                    tB_Isfinite.Text = "NO";
+                    tB_Isfinite.BackColor = Color.Red;
                 }
                 result_data.Columns.Add("Word", "Word");
                 result_data.Columns.Add("Is Accepted?", "Is Accepted?");
@@ -119,7 +131,7 @@ namespace ALE2
                     bt_add_comment.Enabled = true;
                     bt_word.Enabled = true;
                     browse_file.Enabled = false;
-                    if (parser.IsDFA)
+                    if (parser.Automaton.IsDFA)
                     {
                         is_Dfa.Text = "YES";
                         is_Dfa.BackColor = Color.LimeGreen;
@@ -128,6 +140,17 @@ namespace ALE2
                     {
                         is_Dfa.Text = "NO";
                         is_Dfa.BackColor = Color.Red;
+                        btConvertToDFA.Enabled = true;
+                    }
+                    if (parser.Automaton.IsFinite)
+                    {
+                        tB_Isfinite.Text = "YES";
+                        tB_Isfinite.BackColor = Color.LimeGreen;
+                    }
+                    else
+                    {
+                        tB_Isfinite.Text = "NO";
+                        tB_Isfinite.BackColor = Color.Red;
                     }
                     result_data.Rows.Clear();
                 }
@@ -146,13 +169,17 @@ namespace ALE2
             file_name.Text = "";
             is_Dfa.Text = "";
             is_Dfa.BackColor = Color.White;
+            tB_Isfinite.Text = "";
+            tB_Isfinite.BackColor = Color.White;
             read_file.Enabled = false;
             show_graph.Enabled = false;
             bt_word.Enabled = false;
             bt_add_comment.Enabled = false;
             bt_create_text_file.Enabled = false;
+            btConvertToDFA.Enabled = false;
             parse_notation.Enabled = true;
             browse_file.Enabled = true;
+            prefix_notation.Enabled = true;
             tB_word.Text = "";
             tbRE.Text = "";
             tB_comment.Text = "";
@@ -168,7 +195,8 @@ namespace ALE2
             {
                 Word word = new Word(tB_word.Text);
                 parser.Automaton.ListWords.Add(word);
-                result_data.Rows.Add(word.Words, word.IsWordAccepted(parser.Automaton.ListStates,parser.Automaton.ListTransitions));
+                word.IsWordAccepted(parser.Automaton.ListStates, parser.Automaton.ListTransitions);
+                result_data.Rows.Add(word.Words, word.IsAccepted);
             }
             else
             {
@@ -184,6 +212,11 @@ namespace ALE2
         private void bt_create_text_file_Click(object sender, EventArgs e)
         {
             parser.Automaton.CreateTextFile();
+        }
+
+        private void btConvertToDFA_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

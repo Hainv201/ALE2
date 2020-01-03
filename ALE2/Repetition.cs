@@ -19,10 +19,12 @@ namespace ALE2
             State initial = new State($"S{i}");
             initial.IsInitial = true;
             i++;
+            ListStates.Add(initial);
             List<Transition> transitions_got_by_parsing_leftexpression = Left_Expression.GetAutomaton(ref i, ref ListTransitions, ref ListStates, ref ListAlphabets);
             State final = new State($"S{i}");
             final.IsFinal = true;
             i++;
+            ListStates.Add(final);
             State left_left_state = transitions_got_by_parsing_leftexpression.Find(x => x.GetLeftState().IsInitial).GetLeftState();
             State right_left_state = transitions_got_by_parsing_leftexpression.Find(x => x.GetRightState().IsFinal).GetRightState();
             left_left_state.IsInitial = false;
@@ -54,8 +56,6 @@ namespace ALE2
             transitions_got_by_parsed_repetition.Add(transition4);
             ListTransitions.Add(transition4);
 
-            ListStates.Add(initial);
-            ListStates.Add(final);
             return transitions_got_by_parsed_repetition;
         }
 

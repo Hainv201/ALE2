@@ -39,6 +39,8 @@
             this.prefix_notation = new System.Windows.Forms.TextBox();
             this.tbRE = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.tB_Isfinite = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.is_Dfa = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.result_data = new System.Windows.Forms.DataGridView();
@@ -50,6 +52,7 @@
             this.tB_comment = new System.Windows.Forms.TextBox();
             this.bt_create_text_file = new System.Windows.Forms.Button();
             this.bt_add_comment = new System.Windows.Forms.Button();
+            this.btConvertToDFA = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.result_data)).BeginInit();
             this.SuspendLayout();
@@ -149,15 +152,37 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.tB_Isfinite);
+            this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this.is_Dfa);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.result_data);
-            this.groupBox1.Location = new System.Drawing.Point(15, 170);
+            this.groupBox1.Location = new System.Drawing.Point(15, 211);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(547, 202);
             this.groupBox1.TabIndex = 12;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Results";
+            // 
+            // tB_Isfinite
+            // 
+            this.tB_Isfinite.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tB_Isfinite.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.tB_Isfinite.Location = new System.Drawing.Point(441, 21);
+            this.tB_Isfinite.Name = "tB_Isfinite";
+            this.tB_Isfinite.ReadOnly = true;
+            this.tB_Isfinite.Size = new System.Drawing.Size(100, 21);
+            this.tB_Isfinite.TabIndex = 17;
+            this.tB_Isfinite.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(386, 26);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(49, 13);
+            this.label7.TabIndex = 16;
+            this.label7.Text = "Is Finite?";
             // 
             // is_Dfa
             // 
@@ -264,11 +289,23 @@
             this.bt_add_comment.UseVisualStyleBackColor = true;
             this.bt_add_comment.Click += new System.EventHandler(this.bt_add_comment_Click);
             // 
+            // btConvertToDFA
+            // 
+            this.btConvertToDFA.Enabled = false;
+            this.btConvertToDFA.Location = new System.Drawing.Point(406, 170);
+            this.btConvertToDFA.Name = "btConvertToDFA";
+            this.btConvertToDFA.Size = new System.Drawing.Size(75, 35);
+            this.btConvertToDFA.TabIndex = 21;
+            this.btConvertToDFA.Text = "Convert To DFA";
+            this.btConvertToDFA.UseVisualStyleBackColor = true;
+            this.btConvertToDFA.Click += new System.EventHandler(this.btConvertToDFA_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(575, 384);
+            this.ClientSize = new System.Drawing.Size(575, 430);
+            this.Controls.Add(this.btConvertToDFA);
             this.Controls.Add(this.bt_add_comment);
             this.Controls.Add(this.bt_create_text_file);
             this.Controls.Add(this.tB_comment);
@@ -322,6 +359,9 @@
         private System.Windows.Forms.TextBox tB_comment;
         private System.Windows.Forms.Button bt_create_text_file;
         private System.Windows.Forms.Button bt_add_comment;
+        private System.Windows.Forms.TextBox tB_Isfinite;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button btConvertToDFA;
     }
 }
 

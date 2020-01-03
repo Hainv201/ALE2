@@ -17,13 +17,13 @@ namespace ALE2
         {
             List<Transition> transitions_got_by_parsing_choice = new List<Transition>();
             State initial = new State($"S{i}");
-            initial.IsInitial = true;
             i++;
+            ListStates.Add(initial);
             List<Transition> transitions_got_by_parsing_leftexpression = Left_Expression.GetAutomaton(ref i, ref ListTransitions, ref ListStates, ref ListAlphabets);
             List<Transition> transitions_got_by_parsing_rightexpression = Right_Expression.GetAutomaton(ref i, ref ListTransitions, ref ListStates, ref ListAlphabets);
             State final = new State($"S{i}");
             i++;
-            final.IsFinal = true;
+            ListStates.Add(final);
 
             State left_left = transitions_got_by_parsing_leftexpression.Find(x => x.GetLeftState().IsInitial).GetLeftState();
             State right_left = transitions_got_by_parsing_leftexpression.Find(x => x.GetRightState().IsFinal).GetRightState();
@@ -31,6 +31,8 @@ namespace ALE2
             State left_right = transitions_got_by_parsing_rightexpression.Find(x => x.GetLeftState().IsInitial).GetLeftState();
             State right_right = transitions_got_by_parsing_rightexpression.Find(x => x.GetRightState().IsFinal).GetRightState();
 
+            initial.IsInitial = true;
+            final.IsFinal = true;
             left_left.IsInitial = false;
             right_left.IsFinal = false;
             left_right.IsInitial = false;
@@ -63,8 +65,6 @@ namespace ALE2
             transitions_got_by_parsing_choice.Add(transition4);
             ListTransitions.Add(transition4);
 
-            ListStates.Add(initial);
-            ListStates.Add(final);
 
             return transitions_got_by_parsing_choice;
 

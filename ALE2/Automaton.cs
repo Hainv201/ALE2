@@ -12,9 +12,12 @@ namespace ALE2
         public List<Alphabet> ListAlphabets { get; }
         public List<State> ListStates { get; }
         public List<Transition> ListTransitions { get; }
-        public List<Word> ListWords { get; set; }
+        public List<Word> ListWords { get; private set; }
         public string Comment { get; set; }
         public bool IsDFA { get; }
+        public bool IsFinite { get; }
+        List<string> words;
+        bool hasLoop;
         public Automaton(List<Alphabet> alphabets, List<State> states, List<Transition> transitions)
         {
             ListAlphabets = alphabets;
@@ -22,6 +25,16 @@ namespace ALE2
             ListTransitions = transitions;
             ListWords = new List<Word>();
             IsDFA = isDFA();
+            IsFinite = CheckIsFinite();
+        }
+        public void GetListWords(List<Word> words)
+        {
+            ListWords.AddRange(words);
+            ListWords = ListWords.Distinct(new WordComparer()).ToList();
+            foreach (Word w in ListWords)
+            {
+                w.IsWordAccepted(ListStates, ListTransitions);
+            }
         }
         public string CreateGraph()
         {
@@ -65,6 +78,7 @@ namespace ALE2
 
         public void CreateTextFile()
         {
+            ListWords = ListWords.Distinct(new WordComparer()).ToList();
             string content = "";
             content += $"# {Comment}" + Environment.NewLine + Environment.NewLine;
             content += $"alphabet: {String.Join("", ListAlphabets)}" + Environment.NewLine;
@@ -73,8 +87,17 @@ namespace ALE2
             content += $"transitions:" + Environment.NewLine;
             content += $"{String.Join(Environment.NewLine, ListTransitions)}" + Environment.NewLine;
             content += "end." + Environment.NewLine + Environment.NewLine;
-            content += $"dfa: ";
+            content += "dfa: ";
             if (IsDFA)
+            {
+                content += "y" + Environment.NewLine;
+            }
+            else
+            {
+                content += "n" + Environment.NewLine;
+            }
+            content += "finite: ";
+            if (IsFinite)
             {
                 content += "y" + Environment.NewLine;
             }
@@ -86,7 +109,7 @@ namespace ALE2
             content += $"words:" + Environment.NewLine;
             foreach (Word word in ListWords)
             {
-                if (word.IsWordAccepted(ListStates, ListTransitions))
+                if (word.IsAccepted)
                 {
                     content += word.Words + ",y" + Environment.NewLine;
                 }
@@ -96,8 +119,87 @@ namespace ALE2
                 }
             }
             content += "end.";
-            string file_name = "automaton_" + DateTime.Now.ToString("yyyymmdd_HHmmss") + ".txt";
+            string file_name = "automaton_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt";
             File.WriteAllText(file_name, content);
+        }
+
+        private bool CheckIsFinite()
+        {
+            words = new List<string>();
+            hasLoop = false;
+            List<State> initial_States = ListStates.FindAll(x => x.IsInitial);
+            foreach (var initial in initial_States)
+            {
+                List<Transition> used_transitions = new List<Transition>();
+                bool hasloop = false;
+                GetWord(initial, used_transitions,hasloop);
+            }
+            if (hasLoop)
+            {
+                return false;
+            }
+            foreach (var item in words)
+            {
+                ListWords.Add(new Word(item));
+            }
+            return true;
+        }
+        private void GetWord(State current, List<Transition> parent_used_transitions, bool hasloop)
+        {
+            List<Transition> used_transitions = parent_used_transitions.ToList();
+            if (used_transitions.Exists(y => y.GetLeftState() == current))
+            {
+                int index = used_transitions.FindIndex(y => y.GetLeftState() == current);
+                for (int i = index; i < used_transitions.Count; i++)
+                {
+                    if (used_transitions[i].GetLabeledTransition() != "_")
+                    {
+                        hasloop = true;
+                    }
+                }
+            }
+            if (current.IsFinal && hasloop)
+            {
+                hasLoop = true;
+                return;
+            }
+            if (current.IsFinal && !hasloop && !hasLoop)
+            {
+                string word = "";
+                foreach (var item in used_transitions)
+                {
+                    word += item.GetLabeledTransition();
+                }
+                word = word.Replace("_", "");
+                words.Add(word);
+                words = words.Distinct().ToList();
+                return;
+            }
+            List<Transition> possible_transitions = AvailableTransition(current);
+            for (int i = 0; i < possible_transitions.Count; i++)
+            {
+                Transition transition = possible_transitions[i];
+                if (used_transitions.Contains(transition))
+                {
+                    if (transition.GetLabeledTransition() != "_")
+                    {
+                        hasloop = true;
+                    }
+                    possible_transitions.Remove(transition);
+                }
+            }
+            foreach (var item in possible_transitions)
+            {
+                State next_state = item.GetRightState();
+                used_transitions.Add(item);
+                GetWord(next_state, used_transitions, hasloop);
+                used_transitions.Remove(item);
+            }
+        }
+
+        private List<Transition> AvailableTransition(State current)
+        {
+            return ListTransitions.FindAll(x => x.GetLeftState() == current);
         }
     }
 }

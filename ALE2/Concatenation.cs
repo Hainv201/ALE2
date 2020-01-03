@@ -17,10 +17,15 @@ namespace ALE2
             List<Transition> transitions_got_by_parsing_concatenation = new List<Transition>();
             List<Transition> transitions_got_by_parsing_leftexpression = Left_Expression.GetAutomaton(ref i, ref ListTransitions, ref ListStates, ref ListAlphabets);
             List<Transition> transitions_got_by_parsing_rightexpression = Right_Expression.GetAutomaton(ref i, ref ListTransitions, ref ListStates, ref ListAlphabets);
-            State left_right_state = transitions_got_by_parsing_rightexpression.Find(x => x.GetLeftState().IsInitial).GetLeftState();
-            Transition last_left = transitions_got_by_parsing_leftexpression.Find(x => x.GetRightState().IsFinal);
-            ListStates.Remove(last_left.GetRightState());
-            last_left.SetRightState(left_right_state);
+            State final_left = transitions_got_by_parsing_leftexpression.Find(x => x.GetRightState().IsFinal).GetRightState();
+            final_left.IsFinal = false;
+            State initial_right = transitions_got_by_parsing_rightexpression.Find(x => x.GetLeftState().IsInitial).GetLeftState();
+            List<Transition> transitions_contain_initial_right = transitions_got_by_parsing_rightexpression.FindAll(x => x.GetLeftState() == initial_right);
+            foreach (Transition transition in transitions_contain_initial_right)
+            {
+                transition.SetLeftState(final_left);
+            }
+            ListStates.Remove(initial_right);
             transitions_got_by_parsing_concatenation.AddRange(transitions_got_by_parsing_leftexpression);
             transitions_got_by_parsing_concatenation.AddRange(transitions_got_by_parsing_rightexpression);
             return transitions_got_by_parsing_concatenation;
