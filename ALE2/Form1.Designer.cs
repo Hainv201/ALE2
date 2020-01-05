@@ -52,7 +52,8 @@
             this.tB_comment = new System.Windows.Forms.TextBox();
             this.bt_create_text_file = new System.Windows.Forms.Button();
             this.bt_add_comment = new System.Windows.Forms.Button();
-            this.btConvertToDFA = new System.Windows.Forms.Button();
+            this.NormalForm = new System.Windows.Forms.RadioButton();
+            this.ConvertToDFA = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.result_data)).BeginInit();
             this.SuspendLayout();
@@ -157,7 +158,7 @@
             this.groupBox1.Controls.Add(this.is_Dfa);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.result_data);
-            this.groupBox1.Location = new System.Drawing.Point(15, 211);
+            this.groupBox1.Location = new System.Drawing.Point(16, 170);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(547, 202);
             this.groupBox1.TabIndex = 12;
@@ -289,23 +290,37 @@
             this.bt_add_comment.UseVisualStyleBackColor = true;
             this.bt_add_comment.Click += new System.EventHandler(this.bt_add_comment_Click);
             // 
-            // btConvertToDFA
+            // NormalForm
             // 
-            this.btConvertToDFA.Enabled = false;
-            this.btConvertToDFA.Location = new System.Drawing.Point(406, 170);
-            this.btConvertToDFA.Name = "btConvertToDFA";
-            this.btConvertToDFA.Size = new System.Drawing.Size(75, 35);
-            this.btConvertToDFA.TabIndex = 21;
-            this.btConvertToDFA.Text = "Convert To DFA";
-            this.btConvertToDFA.UseVisualStyleBackColor = true;
-            this.btConvertToDFA.Click += new System.EventHandler(this.btConvertToDFA_Click);
+            this.NormalForm.AutoSize = true;
+            this.NormalForm.Enabled = false;
+            this.NormalForm.Location = new System.Drawing.Point(124, 135);
+            this.NormalForm.Name = "NormalForm";
+            this.NormalForm.Size = new System.Drawing.Size(58, 17);
+            this.NormalForm.TabIndex = 22;
+            this.NormalForm.Text = "Normal";
+            this.NormalForm.UseVisualStyleBackColor = true;
+            this.NormalForm.CheckedChanged += new System.EventHandler(this.NormalForm_CheckedChanged);
+            // 
+            // ConvertToDFA
+            // 
+            this.ConvertToDFA.AutoSize = true;
+            this.ConvertToDFA.Enabled = false;
+            this.ConvertToDFA.Location = new System.Drawing.Point(315, 136);
+            this.ConvertToDFA.Name = "ConvertToDFA";
+            this.ConvertToDFA.Size = new System.Drawing.Size(46, 17);
+            this.ConvertToDFA.TabIndex = 23;
+            this.ConvertToDFA.Text = "DFA";
+            this.ConvertToDFA.UseVisualStyleBackColor = true;
+            this.ConvertToDFA.CheckedChanged += new System.EventHandler(this.ConvertToDFA_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(575, 430);
-            this.Controls.Add(this.btConvertToDFA);
+            this.ClientSize = new System.Drawing.Size(575, 384);
+            this.Controls.Add(this.ConvertToDFA);
+            this.Controls.Add(this.NormalForm);
             this.Controls.Add(this.bt_add_comment);
             this.Controls.Add(this.bt_create_text_file);
             this.Controls.Add(this.tB_comment);
@@ -361,7 +376,8 @@
         private System.Windows.Forms.Button bt_add_comment;
         private System.Windows.Forms.TextBox tB_Isfinite;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Button btConvertToDFA;
+        private System.Windows.Forms.RadioButton NormalForm;
+        private System.Windows.Forms.RadioButton ConvertToDFA;
     }
 }
 

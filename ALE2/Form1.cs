@@ -17,6 +17,7 @@ namespace ALE2
     {
         Parser parser = new Parser();
         string fileName;
+        Automaton automaton, tmp;
         public Form1()
         {
             InitializeComponent();
@@ -43,7 +44,7 @@ namespace ALE2
         {
             try
             {
-                string str = parser.Automaton.CreateGraph();
+                string str = automaton.CreateGraph();
                 File.WriteAllText(@"graph.dot", str);
 
                 Process dot = new Process();
@@ -64,40 +65,9 @@ namespace ALE2
         {
             try
             {
-                result_data.Columns.Clear();
-                result_data.Rows.Clear();
                 parser.ParsingFile(fileName);
-                if (parser.Automaton.IsDFA)
-                {
-                    is_Dfa.Text = "YES";
-                    is_Dfa.BackColor = Color.LimeGreen;
-                }
-                else
-                {
-                    is_Dfa.Text = "NO";
-                    is_Dfa.BackColor = Color.Red;
-                    btConvertToDFA.Enabled = true;
-                }
-                if (parser.Automaton.IsFinite)
-                {
-                    tB_Isfinite.Text = "YES";
-                    tB_Isfinite.BackColor = Color.LimeGreen;
-                }
-                else
-                {
-                    tB_Isfinite.Text = "NO";
-                    tB_Isfinite.BackColor = Color.Red;
-                }
-                result_data.Columns.Add("Word", "Word");
-                result_data.Columns.Add("Is Accepted?", "Is Accepted?");
-                foreach (Word word in parser.Automaton.ListWords)
-                {
-                    result_data.Rows.Add(word.Words,word.IsAccepted);
-                }
-                show_graph.Enabled = true;
-                bt_word.Enabled = true;
-                bt_add_comment.Enabled = true;
-                bt_create_text_file.Enabled = true;
+                automaton = parser.Automaton;
+                ShowInfo();
             }
             catch (Exception ex)
             {
@@ -125,34 +95,8 @@ namespace ALE2
                     int i = 0;
                     List<Alphabet> alphabets = new List<Alphabet>();
                     regular_Expression.GetAutomaton(ref i, ref transitions, ref states, ref alphabets);
-                    parser.Automaton = new Automaton(alphabets, states, transitions);
-                    bt_create_text_file.Enabled = true;
-                    show_graph.Enabled = true;
-                    bt_add_comment.Enabled = true;
-                    bt_word.Enabled = true;
-                    browse_file.Enabled = false;
-                    if (parser.Automaton.IsDFA)
-                    {
-                        is_Dfa.Text = "YES";
-                        is_Dfa.BackColor = Color.LimeGreen;
-                    }
-                    else
-                    {
-                        is_Dfa.Text = "NO";
-                        is_Dfa.BackColor = Color.Red;
-                        btConvertToDFA.Enabled = true;
-                    }
-                    if (parser.Automaton.IsFinite)
-                    {
-                        tB_Isfinite.Text = "YES";
-                        tB_Isfinite.BackColor = Color.LimeGreen;
-                    }
-                    else
-                    {
-                        tB_Isfinite.Text = "NO";
-                        tB_Isfinite.BackColor = Color.Red;
-                    }
-                    result_data.Rows.Clear();
+                    automaton = new Automaton(alphabets, states, transitions,null,null);
+                    ShowInfo();
                 }
 
             }
@@ -176,7 +120,6 @@ namespace ALE2
             bt_word.Enabled = false;
             bt_add_comment.Enabled = false;
             bt_create_text_file.Enabled = false;
-            btConvertToDFA.Enabled = false;
             parse_notation.Enabled = true;
             browse_file.Enabled = true;
             prefix_notation.Enabled = true;
@@ -186,16 +129,58 @@ namespace ALE2
             prefix_notation.Text = "";
             result_data.Columns.Add("Word", "Word");
             result_data.Columns.Add("Is Accepted?", "Is Accepted?");
+            ConvertToDFA.Checked = false;
+            ConvertToDFA.Enabled = false;
+            NormalForm.Checked = false;
+            NormalForm.Enabled = false;
+            tmp = null;
         }
 
+        private void ShowInfo()
+        {
+            result_data.Columns.Clear();
+            result_data.Rows.Clear();
+            if (automaton.IsDFA)
+            {
+                is_Dfa.Text = "YES";
+                is_Dfa.BackColor = Color.LimeGreen;
+            }
+            else
+            {
+                is_Dfa.Text = "NO";
+                is_Dfa.BackColor = Color.Red;
+                ConvertToDFA.Enabled = true;
+            }
+            if (automaton.IsFinite)
+            {
+                tB_Isfinite.Text = "YES";
+                tB_Isfinite.BackColor = Color.LimeGreen;
+            }
+            else
+            {
+                tB_Isfinite.Text = "NO";
+                tB_Isfinite.BackColor = Color.Red;
+            }
+            result_data.Columns.Add("Word", "Word");
+            result_data.Columns.Add("Is Accepted?", "Is Accepted?");
+            foreach (Word word in automaton.ListWords)
+            {
+                result_data.Rows.Add(word.Words, word.IsAccepted);
+            }
+            show_graph.Enabled = true;
+            bt_word.Enabled = true;
+            bt_add_comment.Enabled = true;
+            bt_create_text_file.Enabled = true;
+            NormalForm.Enabled = true;
+        }
         private void bt_word_Click(object sender, EventArgs e)
         {
             string words = tB_word.Text;
-            if (!parser.DoesWordContainIncorrectCharacter(words,parser.Automaton.ListAlphabets))
+            if (!parser.DoesWordContainIncorrectCharacter(words,automaton.ListAlphabets))
             {
                 Word word = new Word(tB_word.Text);
-                parser.Automaton.ListWords.Add(word);
-                word.IsWordAccepted(parser.Automaton.ListStates, parser.Automaton.ListTransitions);
+                automaton.ListWords.Add(word);
+                word.IsWordAccepted(automaton.ListStates,automaton.ListTransitions);
                 result_data.Rows.Add(word.Words, word.IsAccepted);
             }
             else
@@ -206,17 +191,34 @@ namespace ALE2
 
         private void bt_add_comment_Click(object sender, EventArgs e)
         {
-            parser.Automaton.Comment = tB_comment.Text;
+            automaton.Comment = tB_comment.Text;
         }
 
         private void bt_create_text_file_Click(object sender, EventArgs e)
         {
-            parser.Automaton.CreateTextFile();
+            automaton.CreateTextFile();
         }
 
-        private void btConvertToDFA_Click(object sender, EventArgs e)
+        private void ConvertToDFA_CheckedChanged(object sender, EventArgs e)
         {
+            if (ConvertToDFA.Checked)
+            {
+                tmp = automaton;
+                automaton = automaton.ConvertToDFA();
+                ShowInfo();
+            }
+        }
 
+        private void NormalForm_CheckedChanged(object sender, EventArgs e)
+        {
+            if (NormalForm.Checked)
+            {
+                if (tmp!= null)
+                {
+                    automaton = tmp;
+                }
+                ShowInfo();
+            }
         }
     }
 }

@@ -13,12 +13,13 @@ namespace ALE2
         public List<State> ListStates { get; }
         public List<Transition> ListTransitions { get; }
         public List<Word> ListWords { get; private set; }
+        public List<Stack> ListStacks { get; }
         public string Comment { get; set; }
         public bool IsDFA { get; }
         public bool IsFinite { get; }
         List<string> words;
         bool hasLoop;
-        public Automaton(List<Alphabet> alphabets, List<State> states, List<Transition> transitions)
+        public Automaton(List<Alphabet> alphabets, List<State> states, List<Transition> transitions,List<Word> words, List<Stack> stacks)
         {
             ListAlphabets = alphabets;
             ListStates = states;
@@ -26,8 +27,17 @@ namespace ALE2
             ListWords = new List<Word>();
             IsDFA = isDFA();
             IsFinite = CheckIsFinite();
+            if (words == null)
+            {
+                words = new List<Word>();
+            }
+            if (stacks == null)
+            {
+                stacks = new List<Stack>();
+            }
+            GetListWords(words);
         }
-        public void GetListWords(List<Word> words)
+        private void GetListWords(List<Word> words)
         {
             ListWords.AddRange(words);
             ListWords = ListWords.Distinct(new WordComparer()).ToList();
@@ -55,13 +65,13 @@ namespace ALE2
 
         private bool isDFA()
         {
-            if (ListTransitions.Exists(x => x.GetLabeledTransition().Contains("_")))
+            if (ListTransitions.Exists(x => x.GetSymbol().Label == "_"))
             {
                 return false;
             }
             foreach (Alphabet alp in ListAlphabets)
             {
-                List<Transition> list_transitions_contain_alp = ListTransitions.FindAll(x => x.GetLabeledTransition().Contains(alp.Character));
+                List<Transition> list_transitions_contain_alp = ListTransitions.FindAll(x => x.GetSymbol().Label == alp.Character);
                 List<State> list_states = new List<State>();
                 foreach (Transition trans in list_transitions_contain_alp)
                 {
@@ -82,6 +92,7 @@ namespace ALE2
             string content = "";
             content += $"# {Comment}" + Environment.NewLine + Environment.NewLine;
             content += $"alphabet: {String.Join("", ListAlphabets)}" + Environment.NewLine;
+            content += $"stack: {String.Join("", ListStacks)}" + Environment.NewLine;
             content += $"states: {String.Join(",", ListStates)}" + Environment.NewLine;
             content += $"final: {String.Join(",", ListStates.FindAll(x => x.IsFinal))}" + Environment.NewLine + Environment.NewLine;
             content += $"transitions:" + Environment.NewLine;
@@ -152,7 +163,7 @@ namespace ALE2
                 int index = used_transitions.FindIndex(y => y.GetLeftState() == current);
                 for (int i = index; i < used_transitions.Count; i++)
                 {
-                    if (used_transitions[i].GetLabeledTransition() != "_")
+                    if (used_transitions[i].GetSymbol().Label != "_")
                     {
                         hasloop = true;
                     }
@@ -168,7 +179,7 @@ namespace ALE2
                 string word = "";
                 foreach (var item in used_transitions)
                 {
-                    word += item.GetLabeledTransition();
+                    word += item.GetSymbol().Label;
                 }
                 word = word.Replace("_", "");
                 words.Add(word);
@@ -176,18 +187,7 @@ namespace ALE2
                 return;
             }
             List<Transition> possible_transitions = AvailableTransition(current);
-            for (int i = 0; i < possible_transitions.Count; i++)
-            {
-                Transition transition = possible_transitions[i];
-                if (used_transitions.Contains(transition))
-                {
-                    if (transition.GetLabeledTransition() != "_")
-                    {
-                        hasloop = true;
-                    }
-                    possible_transitions.Remove(transition);
-                }
-            }
+            possible_transitions = possible_transitions.Except(used_transitions).ToList();
             foreach (var item in possible_transitions)
             {
                 State next_state = item.GetRightState();
@@ -200,6 +200,110 @@ namespace ALE2
         private List<Transition> AvailableTransition(State current)
         {
             return ListTransitions.FindAll(x => x.GetLeftState() == current);
+        }
+
+        public Automaton ConvertToDFA()
+        {
+            List<State> NewListStates = new List<State>();
+            List<Transition> NewListTransitions = new List<Transition>();
+            State Sink = new State("Sink");
+            foreach (State s in ListStates)
+            {
+                s.GetReachableState(ListAlphabets, ListTransitions);
+            }
+            if (ListTransitions.Exists(x => x.GetLeftState().IsInitial && x.GetSymbol().Label == "_"))
+            {
+                return ConvertToDFAWithEpsilonMove(NewListStates,NewListTransitions, Sink);
+            }
+            else
+            {
+                return ConvertToDFAWithoutEpsilonMove(NewListStates,NewListTransitions,Sink);
+            }
+        }
+
+        private Automaton ConvertToDFAWithEpsilonMove(List<State> states, List<Transition> transitions,State Sink)
+        {
+            List<State> initialStatesUsedEpsilon = new List<State>();
+            
+            ListTransitions.FindAll(x => x.GetLeftState().IsInitial && x.GetSymbol().Label == "_").ForEach(x => initialStatesUsedEpsilon.Add(x.GetLeftState()));
+            foreach (var ini_eps in initialStatesUsedEpsilon)
+            {
+                List<Transition> processedtransitions = new List<Transition>();
+                List<State> epsilon_closure_of_ini_eps = ini_eps.GetEpsilonClosure(ListTransitions, processedtransitions);
+                State newini = new State($"{String.Join("", epsilon_closure_of_ini_eps)}");
+                newini.IsInitial = true;
+                if (epsilon_closure_of_ini_eps.Exists(x => x.IsFinal))
+                {
+                    newini.IsFinal = true;
+                }
+                states.Add(newini);
+                ProcessDFA(epsilon_closure_of_ini_eps, states, transitions, Sink,newini);
+            }
+            return new Automaton(ListAlphabets, states, transitions,null,null);
+        }
+
+        private Automaton ConvertToDFAWithoutEpsilonMove(List<State> states, List<Transition> transitions,State Sink)
+        {
+            List<State> initial_states = ListStates.FindAll(x => x.IsInitial);
+            foreach (var initial in initial_states)
+            {
+                List<State> listini = new List<State>();
+                listini.Add(initial);
+                if (listini.Exists(x => x.IsFinal))
+                {
+                    initial.IsFinal = true;
+                }
+                states.Add(initial);
+                ProcessDFA(listini, states, transitions, Sink,initial);
+            } 
+            return new Automaton(ListAlphabets, states, transitions,null,null);
+        }
+
+        private void ProcessDFA(List<State> curr_states, List<State> newStates, List<Transition> transitions, State Sink, State current_State)
+        {
+            foreach (Alphabet a in ListAlphabets)
+            {
+                List<State> reachableStateByA = new List<State>();
+                foreach (State s in curr_states)
+                {
+                    List<State> value;
+                    if (s.ReachableState().TryGetValue(a, out value))
+                    {
+                        reachableStateByA.AddRange(value);
+                    }
+                }
+                reachableStateByA = reachableStateByA.Distinct().ToList();
+                string state_name = $"{String.Join("", reachableStateByA)}";
+                State next_state;
+                if (state_name!="")
+                {
+                    next_state = new State(state_name);
+                }
+                else
+                {
+                    next_state = Sink;
+                }
+                if (!newStates.Exists(x=> x.ToString() == next_state.ToString()))
+                {
+                    if (reachableStateByA.Exists(x =>x.IsFinal))
+                    {
+                        next_state.IsFinal = true;
+                    }
+                    newStates.Add(next_state);
+                }
+                Transition t = new Transition(a.Character);
+                t.SetLeftState(current_State);
+                t.SetRightState(next_state);
+                if (!transitions.Exists(x => x.ToString() == t.ToString()))
+                {
+                    transitions.Add(t);
+                }
+                else
+                {
+                    return;
+                }
+                ProcessDFA(reachableStateByA, newStates, transitions, Sink, next_state);
+            }
         }
     }
 }

@@ -21,20 +21,27 @@ namespace ALE2
             State Initial = states.Find(x => x.IsInitial);
             int i = 0;
             List<Transition> processedEpsilonTransitions = new List<Transition>();
-            IsAccepted = IsFinal(i, processedEpsilonTransitions, transitions,false, Initial);
+            if (transitions.Exists(x => x.GetPopStack() != null))
+            {
+
+            }
+            else
+            {
+                IsAccepted = IsFinal(i, processedEpsilonTransitions, transitions,false, Initial);
+            }
         }
 
         private List<Transition> PossibleMove(List<Transition> transitions, string alp, State current_State)
         {
             if (alp != "_")
             {
-                List<Transition> possible_move_by_alp = transitions.FindAll(x => (x.GetLabeledTransition() == alp && x.GetLeftState() == current_State));
-                List<Transition> possible_move_by_epsilon = transitions.FindAll(x => (x.GetLabeledTransition() == "_" && x.GetLeftState() == current_State && x.GetRightState() != current_State));
+                List<Transition> possible_move_by_alp = transitions.FindAll(x => (x.GetSymbol().Label == alp && x.GetLeftState() == current_State));
+                List<Transition> possible_move_by_epsilon = transitions.FindAll(x => (x.GetSymbol().Label == "_" && x.GetLeftState() == current_State && x.GetRightState() != current_State));
                 return possible_move_by_alp.Union(possible_move_by_epsilon).ToList();
             }
             else
             {
-                return transitions.FindAll(x => (x.GetLabeledTransition() == "_" && x.GetLeftState() == current_State && x.GetRightState() != current_State));
+                return transitions.FindAll(x => (x.GetSymbol().Label == "_" && x.GetLeftState() == current_State && x.GetRightState() != current_State));
             }
         }
 
@@ -65,24 +72,14 @@ namespace ALE2
             {
                 return true;
             }
-            for (int j = 0; j < next_possible_transitions.Count; j++)
-            {
-                Transition t1 = next_possible_transitions[j];
-                foreach (var item in processedEpsilonTransitions)
-                {
-                    if (t1 == item)
-                    {
-                        next_possible_transitions.Remove(t1);
-                    }
-                }
-            }
+            next_possible_transitions = next_possible_transitions.Except(processedEpsilonTransitions).ToList();
             if (next_possible_transitions.Count == 0)
             {
                 return false;
             }
             foreach (Transition transition in next_possible_transitions)
             {
-                if (transition.GetLabeledTransition() == "_")
+                if (transition.GetSymbol().Label == "_")
                 {
                     UseEpsilonMove = true;
                     processedEpsilonTransitions.Add(transition);

@@ -14,6 +14,7 @@ namespace ALE2
         List<Alphabet> listAlphabets;
         List<Transition> listTransitions;
         List<Word> listWords;
+        List<Stack> listStacks;
         List<string> listNotation;
         string comment;
         public Automaton Automaton;
@@ -25,6 +26,7 @@ namespace ALE2
             listAlphabets = new List<Alphabet>();
             listTransitions = new List<Transition>();
             listWords = new List<Word>();
+            listStacks = new List<Stack>();
             FileStream fs = null;
             StreamReader sr = null;
             try
@@ -58,7 +60,20 @@ namespace ALE2
                         }
                         if (first_word == "stack")
                         {
-
+                            string the_rest = s.Substring(s.IndexOf(':') + 1);
+                            if (the_rest == "")
+                            {
+                                throw new InvalidValueInFileException($"Invalid value at line {count_line}");
+                            }
+                            foreach (char character in the_rest)
+                            {
+                                Stack stack = CheckExistStack(character.ToString(), listStacks);
+                                if (stack == null)
+                                {
+                                    stack = new Stack(character.ToString());
+                                    listStacks.Add(stack);
+                                }
+                            }
                         }
                         if (first_word == "states")
                         {
@@ -110,6 +125,10 @@ namespace ALE2
                                 string symbol = state_and_symbol.Substring(state_and_symbol.IndexOf(',') + 1);
                                 string right_state = s.Substring(s.IndexOf('>') + 1);
                                 if (left_state == ""|| symbol == ""|| right_state == "")
+                                {
+                                    throw new InvalidValueInFileException($"Invalid transition at line {count_line}");
+                                }
+                                if (IsIncorrectCharacterInLabeledTransition(symbol,listAlphabets,listStacks))
                                 {
                                     throw new InvalidValueInFileException($"Invalid transition at line {count_line}");
                                 }
@@ -174,8 +193,7 @@ namespace ALE2
                     line = sr.ReadLine();
                     count_line++;
                 }
-                Automaton = new Automaton(listAlphabets, listStates, listTransitions);
-                Automaton.GetListWords(listWords);
+                Automaton = new Automaton(listAlphabets, listStates, listTransitions, listWords,listStacks);
                 Automaton.Comment = comment;
             }
             catch (IOException)
@@ -271,6 +289,21 @@ namespace ALE2
             return null;
         }
 
+        private Stack CheckExistStack(string character, List<Stack> stacks)
+        {
+            if (stacks.Any())
+            {
+                foreach (Stack stack in stacks)
+                {
+                    if (stack.Character == character)
+                    {
+                        return stack;
+                    }
+                }
+            }
+            return null;
+        }
+
         private State CheckExistState(string name, List<State> listStates)
         {
             if (listStates.Any())
@@ -296,6 +329,29 @@ namespace ALE2
             clone_words = clone_words.Replace("_", "");
             clone_words = clone_words.Replace(" ", "");
             if (clone_words == "")
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool IsIncorrectCharacterInLabeledTransition(string label, List<Alphabet> alphabets, List<Stack> stacks)
+        {
+            string clone_label = label.Clone().ToString();
+            foreach (Alphabet alphabet in alphabets)
+            {
+                clone_label = clone_label.Replace(alphabet.Character, "");
+            }
+            foreach (Stack stack in stacks)
+            {
+                clone_label = clone_label.Replace(stack.Character, "");
+            }
+            clone_label = clone_label.Replace("_", "");
+            clone_label = clone_label.Replace(" ", "");
+            clone_label = clone_label.Replace("[", "");
+            clone_label = clone_label.Replace(",", "");
+            clone_label = clone_label.Replace("]", "");
+            if (clone_label == "")
             {
                 return false;
             }

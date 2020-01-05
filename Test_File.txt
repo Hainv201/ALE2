@@ -1,28 +1,23 @@
 # A full description of a PDA to accept strings like anbmcn+m
 
-alphabet: abc
-stack: x
-states: S,B,C
-final: C
+alphabet: 01
+states: a,b,c,d,e
+final: e
 transitions:
-S,a --> S
-S,_ --> B
-B,b --> B
-B,_ --> C
-C,c --> C
-C,_ --> C
+a,0 --> a
+a,0 --> b
+a,0 --> c
+a,0 --> d
+a,0 --> e
+a,1 --> d
+a,1 --> e
+b,0 --> c
+b,1 --> e
+c,1 --> b
+d,0 --> e
 end.
 
 dfa: n
 finite: n
 words:
-,y
-c,y
-abcc,y
-aacc,y
-bbbccc,y
-aaabbcccc,n
-aabbccccc,n
-bbaccc,n
-aaaabbbacccccccc,n
 end.
