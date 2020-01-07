@@ -30,19 +30,19 @@ namespace ALE2
             left_left_state.IsInitial = false;
             right_left_state.IsFinal = false;
 
-            Transition transition1 = new Transition("_");
+            Transition transition1 = new Transition("_",null);
             transition1.SetLeftState(initial);
             transition1.SetRightState(left_left_state);
             transitions_got_by_parsed_repetition.Add(transition1);
             ListTransitions.Add(transition1);
 
-            Transition transition2 = new Transition("_");
+            Transition transition2 = new Transition("_",null);
             transition2.SetLeftState(initial);
             transition2.SetRightState(final);
             transitions_got_by_parsed_repetition.Add(transition2);
             ListTransitions.Add(transition2);
 
-            Transition transition3 = new Transition("_");
+            Transition transition3 = new Transition("_",null);
             transition3.SetLeftState(right_left_state);
             transition3.SetRightState(left_left_state);
             transitions_got_by_parsed_repetition.Add(transition3);
@@ -50,7 +50,7 @@ namespace ALE2
 
             transitions_got_by_parsed_repetition.AddRange(transitions_got_by_parsing_leftexpression);
 
-            Transition transition4 = new Transition("_");
+            Transition transition4 = new Transition("_",null);
             transition4.SetLeftState(right_left_state);
             transition4.SetRightState(final);
             transitions_got_by_parsed_repetition.Add(transition4);

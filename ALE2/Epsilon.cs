@@ -21,7 +21,7 @@ namespace ALE2
             i += 2;
             initial.IsInitial = true;
             final.IsFinal = true;
-            Transition transition = new Transition($"_");
+            Transition transition = new Transition($"_",null);
             transition.SetLeftState(initial);
             transition.SetRightState(final);
             transitions_got_by_parse_alphabet.Add(transition);

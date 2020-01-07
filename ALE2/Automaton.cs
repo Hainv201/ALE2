@@ -35,6 +35,7 @@ namespace ALE2
             {
                 stacks = new List<Stack>();
             }
+            ListStacks = stacks;
             GetListWords(words);
         }
         private void GetListWords(List<Word> words)
@@ -174,6 +175,8 @@ namespace ALE2
                 hasLoop = true;
                 return;
             }
+            List<Transition> possible_transitions = AvailableTransition(current);
+            possible_transitions = possible_transitions.Except(used_transitions).ToList();
             if (current.IsFinal && !hasloop && !hasLoop)
             {
                 string word = "";
@@ -184,10 +187,7 @@ namespace ALE2
                 word = word.Replace("_", "");
                 words.Add(word);
                 words = words.Distinct().ToList();
-                return;
             }
-            List<Transition> possible_transitions = AvailableTransition(current);
-            possible_transitions = possible_transitions.Except(used_transitions).ToList();
             foreach (var item in possible_transitions)
             {
                 State next_state = item.GetRightState();
@@ -277,21 +277,27 @@ namespace ALE2
                 State next_state;
                 if (state_name!="")
                 {
-                    next_state = new State(state_name);
+                    next_state = CheckExistState(state_name, newStates);
+                    if (next_state == null)
+                    {
+                        next_state = new State(state_name);
+                        if (reachableStateByA.Exists(x => x.IsFinal))
+                        {
+                            next_state.IsFinal = true;
+                        }
+                        newStates.Add(next_state);
+                    }
                 }
                 else
                 {
-                    next_state = Sink;
-                }
-                if (!newStates.Exists(x=> x.ToString() == next_state.ToString()))
-                {
-                    if (reachableStateByA.Exists(x =>x.IsFinal))
+                    next_state = CheckExistState("Sink", newStates);
+                    if (next_state == null)
                     {
-                        next_state.IsFinal = true;
+                        next_state = Sink;
+                        newStates.Add(next_state);
                     }
-                    newStates.Add(next_state);
                 }
-                Transition t = new Transition(a.Character);
+                Transition t = new Transition(a.Character,null);
                 t.SetLeftState(current_State);
                 t.SetRightState(next_state);
                 if (!transitions.Exists(x => x.ToString() == t.ToString()))
@@ -304,6 +310,20 @@ namespace ALE2
                 }
                 ProcessDFA(reachableStateByA, newStates, transitions, Sink, next_state);
             }
+        }
+        private State CheckExistState(string name, List<State> listStates)
+        {
+            if (listStates.Any())
+            {
+                foreach (State state in listStates)
+                {
+                    if (state.State_Name == name)
+                    {
+                        return state;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

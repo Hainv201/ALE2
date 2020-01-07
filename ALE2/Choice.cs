@@ -38,13 +38,13 @@ namespace ALE2
             left_right.IsInitial = false;
             right_right.IsFinal = false;
 
-            Transition transition1 = new Transition("_");
+            Transition transition1 = new Transition("_",null);
             transition1.SetLeftState(initial);
             transition1.SetRightState(left_left);
             transitions_got_by_parsing_choice.Add(transition1);
             ListTransitions.Add(transition1);
 
-            Transition transition2 = new Transition("_");
+            Transition transition2 = new Transition("_",null);
             transition2.SetLeftState(initial);
             transition2.SetRightState(left_right);
             transitions_got_by_parsing_choice.Add(transition2);
@@ -53,13 +53,13 @@ namespace ALE2
             transitions_got_by_parsing_choice.AddRange(transitions_got_by_parsing_leftexpression);
             transitions_got_by_parsing_choice.AddRange(transitions_got_by_parsing_rightexpression);
 
-            Transition transition3 = new Transition("_");
+            Transition transition3 = new Transition("_",null);
             transition3.SetLeftState(right_left);
             transition3.SetRightState(final);
             transitions_got_by_parsing_choice.Add(transition3);
             ListTransitions.Add(transition3);
 
-            Transition transition4 = new Transition("_");
+            Transition transition4 = new Transition("_",null);
             transition4.SetLeftState(right_right);
             transition4.SetRightState(final);
             transitions_got_by_parsing_choice.Add(transition4);

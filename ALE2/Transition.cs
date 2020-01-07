@@ -14,10 +14,14 @@ namespace ALE2
         private Stack pop_Stack;
         private Stack push_Stack;
         string labeled_transition;
-        public Transition(string labeled_Transition)
+        public Transition(string labeled_Transition, List<Stack> stacks)
         {
             labeled_transition = labeled_Transition;
-            ParseLabeledTransition();
+            if (stacks == null)
+            {
+                stacks = new List<Stack>();
+            }
+            ParseLabeledTransition(stacks);
         }
 
         public void SetLeftState(State state)
@@ -64,10 +68,14 @@ namespace ALE2
             return $"{left_State},{labeled_transition} --> {right_State}";
         }
 
-        private void ParseLabeledTransition()
+        private void ParseLabeledTransition(List<Stack> stacks)
         {
             if (labeled_transition.Contains("["))
             {
+                if (stacks.Count == 0)
+                {
+                    throw new InvalidValueInFileException("Invalid File. Missing Stack");
+                }
                 if (!labeled_transition.Contains(",")|| !labeled_transition.Contains("]"))
                 {
                     throw new InvalidValueInFileException("Incorrect format for transitions");
@@ -83,13 +91,29 @@ namespace ALE2
                     throw new InvalidValueInFileException("Incorrect format for transitions");
                 }
                 symbol = new Symbol(symbol_character);
-                pop_Stack = new Stack(pop_stack_character);
-                push_Stack = new Stack(push_stack_character);
+
+                pop_Stack = GetStack(pop_stack_character,stacks);
+                push_Stack = GetStack(push_stack_character,stacks);
             }
             else
             {
                 symbol = new Symbol(labeled_transition);
             }
+        }
+
+        private Stack GetStack(string character, List<Stack> stacks)
+        {
+            if (stacks.Any())
+            {
+                foreach (Stack stack in stacks)
+                {
+                    if (stack.Character == character)
+                    {
+                        return stack;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

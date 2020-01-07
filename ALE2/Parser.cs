@@ -132,7 +132,7 @@ namespace ALE2
                                 {
                                     throw new InvalidValueInFileException($"Invalid transition at line {count_line}");
                                 }
-                                Transition transition = new Transition(symbol);
+                                Transition transition = new Transition(symbol,listStacks);
                                 State Left = CheckExistState(left_state, listStates);
                                 State Right = CheckExistState(right_state, listStates);
                                 if (Left!= null && Right !=null)

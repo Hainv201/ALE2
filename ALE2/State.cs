@@ -55,6 +55,7 @@ namespace ALE2
 
         public List<State> GetEpsilonClosure(List<Transition> transitions, List<Transition> processedtransitions)
         {
+            EpsilonClosure.Add(this);
             var usable_transitions = transitions.FindAll(x => x.GetLeftState() == this && x.GetSymbol().Label == "_");
             usable_transitions = usable_transitions.Except(processedtransitions).ToList();
             if (usable_transitions.Count == 0)
@@ -65,7 +66,6 @@ namespace ALE2
             foreach (var t in usable_transitions)
             {
                 var next_state = t.GetRightState();
-                EpsilonClosure.Add(this);
                 processedtransitions.Add(t);
                 next_state.GetEpsilonClosure(transitions,processedtransitions);
                 EpsilonClosure.AddRange(next_state.EpsilonClosure);
