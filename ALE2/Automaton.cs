@@ -161,7 +161,15 @@ namespace ALE2
             List<Transition> used_transitions = parent_used_transitions.ToList();
             if (used_transitions.Exists(y => y.GetLeftState() == current))
             {
-                hasloop = true;
+                int index = used_transitions.FindIndex(y => y.GetLeftState() == current);
+                for (int i = index; i < used_transitions.Count; i++)
+                {
+                    if (used_transitions[i].GetSymbol().Label != "_")
+                    {
+                        hasloop = true;
+                        break;
+                    }
+                }
             }
             List<Transition> possible_transitions = AvailableTransition(current);
             possible_transitions = possible_transitions.Except(used_transitions).ToList();
@@ -169,9 +177,21 @@ namespace ALE2
             {
                 foreach (var t2 in used_transitions)
                 {
-                    if(t1.GetRightState() == t2.GetLeftState())
+                    if (t1.GetRightState() == t2.GetLeftState())
                     {
-                        hasloop = true;
+                        int index = used_transitions.IndexOf(t2);
+                        for (int i = index; i < used_transitions.Count; i++)
+                        {
+                            if (used_transitions[i].GetSymbol().Label != "_")
+                            {
+                                hasloop = true;
+                                break;
+                            }
+                        }
+                        if (t1.GetSymbol().Label != "_")
+                        {
+                            hasloop = true;
+                        }
                     }
                 }
             }

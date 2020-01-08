@@ -2,8 +2,9 @@ alphabet: 01
 states: a,b,c
 final: c
 transitions:
-a,0 --> b
+a,_ --> b
 b,_ --> c
+c,1 --> a
 end.
 
 dfa: n
