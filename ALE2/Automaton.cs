@@ -161,10 +161,15 @@ namespace ALE2
             List<Transition> used_transitions = parent_used_transitions.ToList();
             if (used_transitions.Exists(y => y.GetLeftState() == current))
             {
-                int index = used_transitions.FindIndex(y => y.GetLeftState() == current);
-                for (int i = index; i < used_transitions.Count; i++)
+                hasloop = true;
+            }
+            List<Transition> possible_transitions = AvailableTransition(current);
+            possible_transitions = possible_transitions.Except(used_transitions).ToList();
+            foreach (var t1 in possible_transitions)
+            {
+                foreach (var t2 in used_transitions)
                 {
-                    if (used_transitions[i].GetSymbol().Label != "_")
+                    if(t1.GetRightState() == t2.GetLeftState())
                     {
                         hasloop = true;
                     }
@@ -175,8 +180,6 @@ namespace ALE2
                 hasLoop = true;
                 return;
             }
-            List<Transition> possible_transitions = AvailableTransition(current);
-            possible_transitions = possible_transitions.Except(used_transitions).ToList();
             if (current.IsFinal && !hasloop && !hasLoop)
             {
                 string word = "";
@@ -266,10 +269,16 @@ namespace ALE2
                 List<State> reachableStateByA = new List<State>();
                 foreach (State s in curr_states)
                 {
+                    List<Transition> processedtransitions = new List<Transition>();
                     List<State> value;
                     if (s.ReachableState().TryGetValue(a, out value))
                     {
                         reachableStateByA.AddRange(value);
+                    }
+                    // for epsilon move
+                    foreach (State s1 in value)
+                    {
+                        reachableStateByA.AddRange(s1.GetEpsilonClosure(ListTransitions, processedtransitions).Except(reachableStateByA));
                     }
                 }
                 reachableStateByA = reachableStateByA.Distinct().ToList();

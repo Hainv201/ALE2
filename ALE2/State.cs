@@ -12,7 +12,7 @@ namespace ALE2
         public bool IsInitial;
         public string State_Name { get; private set; }
         private Dictionary<Alphabet, List<State>> reachable_State;
-        private List<State> EpsilonClosure = new List<State>();
+        private List<State> EpsilonClosure;
         public State(string statename)
         {
             IsFinal = false;
@@ -55,12 +55,11 @@ namespace ALE2
 
         public List<State> GetEpsilonClosure(List<Transition> transitions, List<Transition> processedtransitions)
         {
-            EpsilonClosure.Add(this);
+            EpsilonClosure = new List<State>();
             var usable_transitions = transitions.FindAll(x => x.GetLeftState() == this && x.GetSymbol().Label == "_");
             usable_transitions = usable_transitions.Except(processedtransitions).ToList();
             if (usable_transitions.Count == 0)
             {
-                EpsilonClosure = EpsilonClosure.Distinct().ToList();
                 return EpsilonClosure;
             }
             foreach (var t in usable_transitions)
@@ -68,8 +67,16 @@ namespace ALE2
                 var next_state = t.GetRightState();
                 processedtransitions.Add(t);
                 next_state.GetEpsilonClosure(transitions,processedtransitions);
-                EpsilonClosure.AddRange(next_state.EpsilonClosure);
+                if (next_state.EpsilonClosure.Count == 0)
+                {
+                    EpsilonClosure.Add(next_state);
+                }
+                else
+                {
+                    EpsilonClosure.AddRange(next_state.EpsilonClosure);
+                }
             }
+            EpsilonClosure.Add(this);
             EpsilonClosure = EpsilonClosure.Distinct().ToList();
             return EpsilonClosure;
         }

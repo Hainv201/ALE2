@@ -1,0 +1,12 @@
+alphabet: 01
+states: a,b,c
+final: c
+transitions:
+a,0 --> b
+b,_ --> c
+end.
+
+dfa: n
+finite: n
+words:
+end.

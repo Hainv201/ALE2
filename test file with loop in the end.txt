@@ -1,0 +1,15 @@
+# A full description of a PDA to accept strings like anbmcn+m
+
+alphabet: 01
+states: a,b,c
+final: b,c
+transitions:
+a,0 --> b
+b,1 --> c
+c,0 --> a
+end.
+
+dfa: n
+finite: n
+words:
+end.
